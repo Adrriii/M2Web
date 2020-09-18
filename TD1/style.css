@@ -1,0 +1,53 @@
+body {
+    background-color: aquamarine;
+}
+
+.blog {
+    background-color: beige;
+    width: 60%;
+    margin: 50px auto 50px auto;
+}
+
+.blog_title {
+    background-color: bisque;
+    text-align: center;
+    font-size: 220%;
+    font-family: 'Rubik Mono One', sans-serif;
+}
+
+.category {
+    margin: 0px 0px 20px 0px;
+    font-family: 'Rubik Mono One', sans-serif;
+}
+
+.category_title {
+    background-color: blanchedalmond;
+    padding-left: 70px;
+    font-size: 180%;
+}
+
+.post {
+    border: 1px solid black;
+    border-radius: 10px 10px 10px 10px;
+    margin: 15px 15px 15px 15px;
+    padding: 15px 15px 15px 15px;
+    background-color: #e8e9db;
+    font-family: 'Inconsolata', monospace;
+}
+
+.category_container {
+    padding-bottom: 15px;
+}
+
+.post_title {
+    font-size: 150%;
+    margin-bottom: 7px;
+}
+.post_author {
+    font-size: 90%;
+    margin-bottom: 3px;
+}
+.post_date {
+    font-size: 90%;
+    margin-bottom: 15px;
+}
