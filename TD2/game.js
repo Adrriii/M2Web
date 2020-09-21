@@ -77,11 +77,9 @@ class Game {
         if(!playable) {
             document.getElementsByClassName("pick_button")[0].className = "action_button pick_button disabled";   
             document.getElementsByClassName("call_button")[0].className = "action_button call_button disabled";   
-            document.getElementsByClassName("dd_button")[0].className = "action_button dd_button disabled";   
         } else {
             document.getElementsByClassName("pick_button")[0].className = "action_button pick_button";   
-            document.getElementsByClassName("call_button")[0].className = "action_button call_button";   
-            document.getElementsByClassName("dd_button")[0].className = "action_button dd_button"; 
+            document.getElementsByClassName("call_button")[0].className = "action_button call_button"; 
         }
     }
 
@@ -90,7 +88,7 @@ class Game {
     }
 
     refreshBet() {
-        document.getElementsByClassName("bet")[0].innerHTML = this.pot;
+        document.getElementsByClassName("bet")[0].innerHTML = this.pot / 2;
     }
 
     refresh() {
@@ -114,6 +112,7 @@ class Game {
         this.player.balance += this.pot/2;
         this.bank.balance += this.pot/2;
         this.pot = 0;
+        this.setPlayable(false);
     }
 
     hit() {
