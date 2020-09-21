@@ -127,6 +127,10 @@ body {
 .disabled {
     border-color: rgba(109, 109, 109, 0.719);
     color: rgba(109, 109, 109, 0.719);
+    background: rgb(69,69,69);
+}
+.disabled:hover{
+    background: rgb(69,69,69);
 }
 
 .hand {
