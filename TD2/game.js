@@ -12,6 +12,11 @@ const LOGTYPE = {
     WARNING: 2,
     DEBUG: 3,
 };
+const DISPLAYTYPE = {
+    WIN: "result_win",
+    LOSE: "result_lose",
+    TIE: "result_tie",
+};
 
 let LOGLEVEL = LOGTYPE.MSG;
 
@@ -34,6 +39,11 @@ function Log(msg, type) {
     }
 }
 
+function displayResult(msg, style = DISPLAYTYPE.TIE) {
+    document.getElementsByClassName("result")[0].innerHTML = msg;
+    document.getElementsByClassName("result")[0].className = "result "+style;
+}
+
 class Game {
     constructor(playerName, playerBalance) {
         this.bank = new Player("Bank", 1000, "bank");
@@ -47,10 +57,9 @@ class Game {
     }
 
     newRound() {
-        this.bank.discard();
-        this.player.discard();
+        this.bank.discard().forEach(card => { this.deck.InsertBottom(card)});
+        this.player.discard().forEach(card => { this.deck.InsertBottom(card)});
 
-        this.draw(this.bank);
         this.draw(this.bank);
         this.draw(this.player);
         this.draw(this.player);
@@ -60,6 +69,20 @@ class Game {
         this.pot = 100;
 
         this.refresh();
+        this.setPlayable(true);
+    }
+
+    setPlayable(playable) {
+        this.playable = playable;
+        if(!playable) {
+            document.getElementsByClassName("pick_button")[0].className = "action_button pick_button disabled";   
+            document.getElementsByClassName("call_button")[0].className = "action_button call_button disabled";   
+            document.getElementsByClassName("dd_button")[0].className = "action_button dd_button disabled";   
+        } else {
+            document.getElementsByClassName("pick_button")[0].className = "action_button pick_button";   
+            document.getElementsByClassName("call_button")[0].className = "action_button call_button";   
+            document.getElementsByClassName("dd_button")[0].className = "action_button dd_button"; 
+        }
     }
 
     refreshScore() {
@@ -81,16 +104,66 @@ class Game {
         player.getCard(this.deck.Pick());
     }
 
-    hit() {
+    win(player) {
+        player.balance += this.pot;
+        this.pot = 0;
+        this.setPlayable(false);
+    }
 
+    push() {
+        this.player.balance += this.pot/2;
+        this.bank.balance += this.pot/2;
+        this.pot = 0;
+    }
+
+    hit() {
+        if(!this.playable) return;
+        this.draw(this.player);
+        this.refresh();
+
+        if(this.player.getScore() > 21) {
+            displayResult("Bust!", DISPLAYTYPE.LOSE);
+            this.win(this.bank);
+        }
     }
 
     stand() {
+        if(!this.playable) return;
+        while(this.bank.getScore()<17) {
+            this.draw(this.bank);
+        }
+        this.refresh();
+        
+        let bs = this.bank.getScore();
+        let ps = this.player.getScore();
 
+        if(bs > 21) {
+            displayResult("Bank Bust!", DISPLAYTYPE.WIN);
+            this.win(this.player);
+        }
+        else if(bs > ps) {
+            displayResult("Bank wins!", DISPLAYTYPE.LOSE);
+            this.win(this.bank);
+        }
+        else if(bs < ps) {
+            displayResult("You win!", DISPLAYTYPE.WIN);
+            this.win(this.player);
+        }
+        else if(bs == ps) {
+            displayResult("Push!", DISPLAYTYPE.TIE);
+            this.push();
+        }
     }
 
     dd() {
 
+    }
+
+    next() {
+        this.bank.balance += this.pot;
+        this.pot = 0;
+        displayResult("");
+        this.newRound();
     }
 }
 
@@ -103,7 +176,9 @@ class Player {
     }
 
     discard() {
+        let cards = this.hand;
         this.hand = [];
+        return cards;
     }
 
     getCard(card) {
@@ -136,10 +211,25 @@ class Player {
 
     getScore() {
         let score = 0;
+        let n = 0;
+        let soft = false;
         this.hand.forEach(card => {
-            score += card.getValue();
-            Log(score, LOGTYPE.MSG);
+            n++;
+
+            Log(this, LOGTYPE.MSG);
+            let val = card.getValue();
+            if(val == 1) {
+                if(n<=2) {
+                    soft = true; // if has an ace in first draw (soft)
+                }
+                val = 11;
+            }
+            score += val;
         });
+
+        if(score > 21 && soft) { // diminished ace if bust on soft
+            score -= 10;
+        }
 
         return score;
     }

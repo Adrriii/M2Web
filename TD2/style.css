@@ -81,8 +81,9 @@ body {
     flex-flow: column;
 }
 
-.player_info > div {
+.player_info > div, .result {
     margin: 0px auto 0px auto;
+    width: fit-content;
 }
 
 .action_button {
@@ -124,6 +125,14 @@ body {
     border-color: rgba(214, 33, 33, 0.719);
 }
 
+.next_button {
+    border-color: rgba(18, 69, 209, 0.719);
+}
+.disabled {
+    border-color: rgba(109, 109, 109, 0.719);
+    color: rgba(109, 109, 109, 0.719);
+}
+
 .hand {
     display: flex;
     align-items: center;
@@ -135,4 +144,19 @@ body {
     background-repeat: no-repeat;
     height: 200px;
     background-size: 130px 200px;
+}
+
+.result {
+    font-size: 125%;
+    margin: 20px 20px 20px 20px,
+}
+
+.result_win {
+    color: rgb(3, 92, 3);
+}
+.result_lose {
+    color: rgb(110, 5, 5);
+}
+.result_tie {
+    color: rgb(97, 93, 93);
 }
