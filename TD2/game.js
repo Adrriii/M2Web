@@ -1,11 +1,3 @@
-let game;
-
-function start(name) {
-    game = new Game(name, 500);
-}
-
-////////////////
-
 const LOGTYPE = {
     ERROR: 0,
     MSG: 1,
@@ -215,12 +207,10 @@ class Player {
         this.hand.forEach(card => {
             n++;
 
-            Log(this, LOGTYPE.MSG);
+            Log(this, LOGTYPE.DEBUG);
             let val = card.getValue();
             if(val == 1) {
-                if(n<=2) {
-                    soft = true; // if has an ace in first draw (soft)
-                }
+                soft = true; // if has an at least an ace (soft)
                 val = 11;
             }
             score += val;
@@ -279,7 +269,7 @@ class Card {
             this.number = number;
             this.color = color;
         } else {
-            console.log("Tried to create impossible card : "+number+color, LOGTYPE.ERROR);
+            Log("Tried to create impossible card : "+number+color, LOGTYPE.ERROR);
         }
     }
 
@@ -299,3 +289,7 @@ class Card {
         return this.number+this.color;
     }
 }
+
+//////////////
+
+let game = new Game(prompt("Enter your username", "Player"), 500);
