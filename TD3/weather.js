@@ -2,45 +2,125 @@ let map; // Google Maps
 let autocomplete; // Google Places AutoComplete
 let inverted = false; // Switch between white or dark theme according to time of day
 
-function initMap(element, lat_, lng_, zoom_) {
-  map = new google.maps.Map(element, {
-    center: { lat: parseFloat(lat_), lng: parseFloat(lng_) },
-    zoom: zoom_,
-    styles: map_style
-  });
-}
 
-function initAutoComplete() {
-  let searchbox = document.getElementsByClassName("searchbox")[0];
+// Main class for one weather display
+class Weather {
 
-  let searchoptions = {
-    types: ['(regions)'], // Search by city name, postal code
-    componentRestrictions: { country: "FR" }
-  };
+  constructor(meteodiv) {
+    this.meteodiv = meteodiv;
 
-  autocomplete = new google.maps.places.Autocomplete(searchbox, searchoptions);
+    this.meteodiv.style.display = "none";
 
-  searchbox.addEventListener("keyup", function (event) {
-    if (event.keyCode === 13 || event.keyCode === 9) {
-      getPlaceFromAutoComplete();
+    this.search_lat = null;
+    this.search_lng = null;
+    this.name = "";
+
+    let current_hour = new Date().getHours();
+    if(current_hour<8 || current_hour>7) {
+      document.body.className = "cycle cycle_night";
     }
-  });
 
-  google.maps.event.addListener(autocomplete, 'place_changed', () => {
-    getPlaceFromAutoComplete();
-  });
-}
-
-function getPlaceFromAutoComplete() {
-  let place = autocomplete.getPlace();
-
-  if(!place || !place.address_components) {
-    return;
+    initAutoComplete();
   }
-  
-  weather.handleResult(place);
-}
 
+  handleResult(place) {
+    if(place.address_components.length >= 4) {
+      // This is a city
+      this.search_lat = place.geometry.location.lat().toFixed(3);
+      this.search_lng = place.geometry.location.lng().toFixed(3);
+      this.name = place.vicinity;
+      this.ismap = false;
+
+      this.refresh();
+    } else {
+      // This is not a city
+      console.log(place);
+      console.log("Not a city");
+    }
+  }
+
+  refresh() {
+    if (!this.search_lat || !this.search_lng) return;
+
+    fetch("https://www.prevision-meteo.ch/services/json/lat=" + this.search_lat + "lng=" + this.search_lng).then(response => {
+      response.json().then(data => {
+        console.log(response);
+        this.info = new WeatherInfo(data);
+        this.info.data.city_info.name = this.name;
+
+        weather.display();
+      })
+    });
+  }
+
+  display() {
+    document.getElementById("data").innerHTML = JSON.stringify(this.data);
+
+    this.changeInfo("city", this.info.getCityName());
+    this.changeInfo("sunrise_text", this.info.getSunrise());
+    this.changeInfo("sunset_text", this.info.getSunset());
+
+    this.changeInfo("datetime", this.info.getDateTime());
+    this.changeInfo("time", this.info.getHour());
+
+    this.changeInfo("condition", this.info.getCondition());
+    changeFavicon(this.info.getConditionIcon());
+
+    document.getElementsByClassName("cond_img")[0].innerHTML = getCondition(this.info.getCondition());
+
+    this.changeInfo("temp_main", this.info.getTemp());
+    this.changeInfo("temp_min", this.info.getTempMin());
+    this.changeInfo("temp_max", this.info.getTempMax());
+
+    this.changeInfo("wind", this.info.getWindSpeed());
+    this.changeInfo("wind_dir", getDirection(this.info.getWindDir()));
+
+    if (this.info.hour > this.info.getSunrise().split(":")[0] && this.info.hour <= this.info.getSunset().split(":")[0]) {
+      if (inverted) {
+        document.body.className = "cycle cycle_night";
+      } else {
+        document.body.className = "cycle cycle_day";
+      }
+    } else {
+      if (inverted) {
+        document.body.className = "cycle cycle_day";
+      } else {
+        document.body.className = "cycle cycle_night";
+      }
+    }
+
+    if (!this.ismap) {
+      initMap(document.getElementsByClassName("map")[0], this.info.getLatitude(), this.info.getLongitude(), 10);
+      this.ismap = true;
+    }
+
+    this.meteodiv.style.display = "block";
+  }
+
+  changeInfo(target, info) {
+    document.getElementsByClassName(target)[0].innerHTML = info;
+  }
+
+  nextDay() {
+    this.info.setDay(this.info.day + 1);
+    this.display();
+  }
+
+  prevDay() {
+    this.info.setDay(this.info.day - 1);
+    this.display();
+  }
+
+  nextHour() {
+    this.info.setHour(this.info.hour + 1);
+    this.display();
+  }
+
+  prevHour() {
+    this.info.setHour(this.info.hour - 1);
+    this.display();
+  }
+}
 
 // Enables to get specific info based on date and hour from the raw json response
 class WeatherInfo {
@@ -138,126 +218,54 @@ class WeatherInfo {
   getSunset() {
     return this.data.city_info.sunset;
   }
-}
 
-// Main class for one weather display
-class Weather {
-
-  constructor(meteodiv) {
-    this.meteodiv = meteodiv;
-
-    this.meteodiv.style.display = "none";
-
-    this.search_lat = null;
-    this.search_lng = null;
-    this.name = "";
-
-    let current_hour = new Date().getHours();
-    if(current_hour<8 || current_hour>7) {
-      document.body.className = "cycle cycle_night";
-    }
-
-    initAutoComplete();
-  }
-
-  handleResult(place) {
-    if(place.address_components.length >= 4) {
-      // This is a city
-      this.search_lat = place.geometry.location.lat().toFixed(3);
-      this.search_lng = place.geometry.location.lng().toFixed(3);
-      this.name = place.vicinity;
-      this.ismap = false;
-
-      this.refresh();
-    } else {
-      // This is not a city
-      console.log(place);
-      console.log("Not a city");
-    }
-  }
-
-  refresh() {
-    if (!this.search_lat || !this.search_lng) return;
-
-    fetch("https://www.prevision-meteo.ch/services/json/lat=" + this.search_lat + "lng=" + this.search_lng).then(response => {
-      response.json().then(data => {
-        console.log(response);
-        this.info = new WeatherInfo(data);
-        this.info.data.city_info.name = this.name;
-
-        weather.display();
-      })
-    });
-  }
-
-  display() {
-    document.getElementById("data").innerHTML = JSON.stringify(this.data);
-
-    this.changeInfo("city", this.info.getCityName());
-    this.changeInfo("sunrise_text", this.info.getSunrise());
-    this.changeInfo("sunset_text", this.info.getSunset());
-
-    this.changeInfo("datetime", this.info.getDateTime());
-    this.changeInfo("time", this.info.getHour());
-
-    // this.changeInfo("time",this.data.current_condition.hour);
-    this.changeInfo("condition", this.info.getCondition());
-
-    document.getElementsByClassName("cond_img")[0].innerHTML = getCondition(this.info.getCondition());
-
-    this.changeInfo("temp_main", this.info.getTemp());
-    this.changeInfo("temp_min", this.info.getTempMin());
-    this.changeInfo("temp_max", this.info.getTempMax());
-
-    this.changeInfo("wind", this.info.getWindSpeed());
-    this.changeInfo("wind_dir", getDirection(this.info.getWindDir()));
-
-    if (this.info.hour > this.info.getSunrise().split(":")[0] && this.info.hour <= this.info.getSunset().split(":")[0]) {
-      if (inverted) {
-        document.body.className = "cycle cycle_night";
-      } else {
-        document.body.className = "cycle cycle_day";
-      }
-    } else {
-      if (inverted) {
-        document.body.className = "cycle cycle_day";
-      } else {
-        document.body.className = "cycle cycle_night";
-      }
-    }
-
-    if (!this.ismap) {
-      initMap(document.getElementsByClassName("map")[0], this.info.getLatitude(), this.info.getLongitude(), 10);
-      this.ismap = true;
-    }
-
-    this.meteodiv.style.display = "block";
-  }
-
-  changeInfo(target, info) {
-    document.getElementsByClassName(target)[0].innerHTML = info;
-  }
-
-  nextDay() {
-    this.info.setDay(this.info.day + 1);
-    this.display();
-  }
-
-  prevDay() {
-    this.info.setDay(this.info.day - 1);
-    this.display();
-  }
-
-  nextHour() {
-    this.info.setHour(this.info.hour + 1);
-    this.display();
-  }
-
-  prevHour() {
-    this.info.setHour(this.info.hour - 1);
-    this.display();
+  getConditionIcon() {
+    return this.getHourData().ICON;
   }
 }
+
+// Google services related functions
+
+function initMap(element, lat_, lng_, zoom_) {
+  map = new google.maps.Map(element, {
+    center: { lat: parseFloat(lat_), lng: parseFloat(lng_) },
+    zoom: zoom_,
+    styles: map_style
+  });
+}
+
+function initAutoComplete() {
+  let searchbox = document.getElementsByClassName("searchbox")[0];
+
+  let searchoptions = {
+    types: ['(regions)'], // Search by city name, postal code
+    componentRestrictions: { country: "FR" }
+  };
+
+  autocomplete = new google.maps.places.Autocomplete(searchbox, searchoptions);
+
+  searchbox.addEventListener("keyup", function (event) {
+    if (event.keyCode === 13 || event.keyCode === 9) {
+      getPlaceFromAutoComplete();
+    }
+  });
+
+  google.maps.event.addListener(autocomplete, 'place_changed', () => {
+    getPlaceFromAutoComplete();
+  });
+}
+
+function getPlaceFromAutoComplete() {
+  let place = autocomplete.getPlace();
+
+  if(!place || !place.address_components) {
+    return;
+  }
+  
+  weather.handleResult(place);
+}
+
+// Helper functions
 
 var getHour = function (hour) {
   return hour.split(":")[0];
@@ -334,7 +342,6 @@ var getCondition = function (cond) {
       return '<i class="fas fa-snowflake"></i>';
   }
 }
-
 
 const map_style = [
   {
@@ -548,6 +555,29 @@ const map_style = [
     ]
   }
 ];
+
+// just some fun from https://stackoverflow.com/a/2995536
+
+/*!
+ * Dynamically changing favicons with JavaScript
+ * Works in all A-grade browsers except Safari and Internet Explorer
+ * Demo: http://mathiasbynens.be/demo/dynamic-favicons
+ */
+
+// HTML5™, baby! http://mathiasbynens.be/notes/document-head
+document.head = document.head || document.getElementsByTagName('head')[0];
+
+function changeFavicon(src) {
+ var link = document.createElement('link'),
+     oldLink = document.getElementById('dynamic-favicon');
+ link.id = 'dynamic-favicon';
+ link.rel = 'shortcut icon';
+ link.href = src;
+ if (oldLink) {
+  document.head.removeChild(oldLink);
+ }
+ document.head.appendChild(link);
+}
 
 /////////////
 
