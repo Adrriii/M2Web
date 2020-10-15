@@ -166,6 +166,7 @@ class Weather {
       this.search_lat = place.geometry.location.lat().toFixed(3);
       this.search_lng = place.geometry.location.lng().toFixed(3);
       this.name = place.vicinity;
+      this.ismap = false;
 
       this.refresh();
     } else {
