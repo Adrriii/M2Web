@@ -11,11 +11,13 @@ body {
 }
 
 .cycle_day {
+    transition: all 1s ease;
     background-color: white;
     color: black;
 }
 
 .cycle_night {
+    transition: all 1s ease;
     background-color: rgb(14, 14, 14);
     color: white;
 }
