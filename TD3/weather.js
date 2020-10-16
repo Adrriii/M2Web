@@ -16,7 +16,7 @@ class Weather {
     this.name = "";
 
     let current_hour = new Date().getHours();
-    if(current_hour<8 || current_hour>7) {
+    if(current_hour<8 || current_hour>19) {
       document.body.className = "cycle cycle_night";
     }
 
@@ -32,10 +32,6 @@ class Weather {
       this.ismap = false;
 
       this.refresh();
-    } else {
-      // This is not a city
-      console.log(place);
-      console.log("Not a city");
     }
   }
 
@@ -44,7 +40,6 @@ class Weather {
 
     fetch("https://www.prevision-meteo.ch/services/json/lat=" + this.search_lat + "lng=" + this.search_lng).then(response => {
       response.json().then(data => {
-        console.log(response);
         this.info = new WeatherInfo(data);
         this.info.data.city_info.name = this.name;
 
