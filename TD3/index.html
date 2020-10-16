@@ -17,21 +17,21 @@
     <div class="row mx-auto">
         <input type="text" class="form-control searchbox" placeholder="Rechercher une ville" aria-label="Rechercher une ville" aria-describedby="basic-addon2">
         <div class="input-group-append">
-            <button class="btn btn-outline-primary searchsubmit" type="button" onclick="weather.refresh()" placeholder="Nom de ville" style='display:none'>Afficher</button>
+            <button class="btn btn-outline-primary searchsubmit" type="button" placeholder="Nom de ville" style='display:none'>Afficher</button>
         </div>
     </div>
     <div class="row mx-auto app">
         <div class="row mx-auto d-flex justify-content-center city"></div>
         <div class="row mx-auto d-flex justify-content-center condition grey_text"></div>
         <div class="row mx-auto d-flex justify-content-between align-items-center grey_text">
-            <div class="col-min c_left" onclick="weather.prevDay()"><i class="fas fa-caret-left"></i></div> 
+            <div class="col-min c_left p_day"><i class="fas fa-caret-left"></i></div> 
             <div class="col-min datetime"></div>
-            <div class="col-min c_right" onclick="weather.nextDay()"><i class="fas fa-caret-right"></i></div>
+            <div class="col-min c_right n_day"><i class="fas fa-caret-right"></i></div>
         </div>
         <div class="row mx-auto d-flex justify-content-between align-items-center grey_text">
-            <div class="col-min c_left" onclick="weather.prevHour()"><i class="fas fa-caret-left"></i></div> 
+            <div class="col-min c_left p_hour"><i class="fas fa-caret-left"></i></div> 
             <div class="col-min time"></div>
-            <div class="col-min c_right" onclick="weather.nextHour()"><i class="fas fa-caret-right"></i></div>
+            <div class="col-min c_right n_hour"><i class="fas fa-caret-right"></i></div>
         </div>
         <div class="row mx-auto d-flex justify-content-around suntime_container grey_text">
             <div class="col-min"><i class="far fa-sun"></i> <span class="sunrise_text"></span></div>

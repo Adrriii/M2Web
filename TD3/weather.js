@@ -1,7 +1,7 @@
 let map; // Google Maps
 let autocomplete; // Google Places AutoComplete
 let inverted = false; // Switch between white or dark theme according to time of day
-
+var weather; // app controller
 
 // Main class for one weather display
 class Weather {
@@ -20,7 +20,8 @@ class Weather {
       document.body.className = "cycle cycle_night";
     }
 
-    initAutoComplete();
+    this.initAutoComplete();
+    this.initNavButtons();
   }
 
   handleResult(place) {
@@ -43,13 +44,13 @@ class Weather {
         this.info = new WeatherInfo(data);
         this.info.data.city_info.name = this.name;
 
-        weather.display();
+        this.display();
       })
     });
   }
 
   display() {
-    document.getElementById("data").innerHTML = JSON.stringify(this.data);
+    document.getElementById("data").innerHTML = JSON.stringify(this.info.data);
 
     this.changeInfo("city", this.info.getCityName());
     this.changeInfo("sunrise_text", this.info.getSunrise());
@@ -96,6 +97,13 @@ class Weather {
     document.getElementsByClassName(target)[0].innerHTML = info;
   }
 
+  initNavButtons() {
+    document.getElementsByClassName("p_day")[0].addEventListener("click", this.prevDay.bind(this));
+    document.getElementsByClassName("n_day")[0].addEventListener("click", this.nextDay.bind(this));
+    document.getElementsByClassName("p_hour")[0].addEventListener("click", this.prevHour.bind(this));
+    document.getElementsByClassName("n_hour")[0].addEventListener("click", this.nextHour.bind(this));
+  }
+
   nextDay() {
     this.info.setDay(this.info.day + 1);
     this.display();
@@ -114,6 +122,37 @@ class Weather {
   prevHour() {
     this.info.setHour(this.info.hour - 1);
     this.display();
+  }
+
+  initAutoComplete() {
+    let searchbox = document.getElementsByClassName("searchbox")[0];
+  
+    let searchoptions = {
+      types: ['(regions)'], // Search by city name, postal code
+      componentRestrictions: { country: "FR" }
+    };
+  
+    autocomplete = new google.maps.places.Autocomplete(searchbox, searchoptions);
+  
+    searchbox.addEventListener("keyup", function (event) {
+      if (event.keyCode === 13 || event.keyCode === 9) {
+        this.getPlaceFromAutoComplete();
+      }
+    });
+  
+    google.maps.event.addListener(autocomplete, 'place_changed', () => {
+      this.getPlaceFromAutoComplete();
+    });
+  }
+  
+  getPlaceFromAutoComplete() {
+    let place = autocomplete.getPlace();
+  
+    if(!place || !place.address_components) {
+      return;
+    }
+    
+    this.handleResult(place);
   }
 }
 
@@ -227,37 +266,6 @@ function initMap(element, lat_, lng_, zoom_) {
     zoom: zoom_,
     styles: map_style
   });
-}
-
-function initAutoComplete() {
-  let searchbox = document.getElementsByClassName("searchbox")[0];
-
-  let searchoptions = {
-    types: ['(regions)'], // Search by city name, postal code
-    componentRestrictions: { country: "FR" }
-  };
-
-  autocomplete = new google.maps.places.Autocomplete(searchbox, searchoptions);
-
-  searchbox.addEventListener("keyup", function (event) {
-    if (event.keyCode === 13 || event.keyCode === 9) {
-      getPlaceFromAutoComplete();
-    }
-  });
-
-  google.maps.event.addListener(autocomplete, 'place_changed', () => {
-    getPlaceFromAutoComplete();
-  });
-}
-
-function getPlaceFromAutoComplete() {
-  let place = autocomplete.getPlace();
-
-  if(!place || !place.address_components) {
-    return;
-  }
-  
-  weather.handleResult(place);
 }
 
 // Helper functions
@@ -576,4 +584,4 @@ function changeFavicon(src) {
 
 /////////////
 
-let weather = new Weather(document.getElementsByClassName("app")[0]);
+weather = new Weather(document.getElementsByClassName("app")[0]);
