@@ -10,3 +10,4 @@
 
 - Day/Night theme transition according to either current time (default) or the currently viewed meteo hour
 - Favicon changes according to the currently selected meteo data
+- Check the live version at https://m2.adri-web.dev/web/TD3/
